@@ -43,14 +43,27 @@ const VK_SELECTOR = '.wl_post_body_wrap';
                                 ? null
                                 : `#${el.getAttribute('id')}`;
                             if (identifier === null) {
-                                if (el.childNodes.length > 0) {
-                                    elements.push(...el.childNodes);
+                                identifier = '.' + el.getAttribute('class')
+                                    .split(' ')
+                                    .map(e => e.trim())
+                                    .filter(e => e !== '')
+                                    .join('.');
+                                if (!identifier || identifier.length < 10) {
+                                    if (el.childNodes.length > 0) {
+                                        elements.push(...el.childNodes);
+                                    }
+                                } else {
+                                    return {
+                                        isInnerTextMatchSearchLink: false,
+                                        isInnerTextMatchLinkName: false,
+                                        isAttributeMatchLinkName: true,
+                                        elId: identifier,
+                                    };
                                 }
+                                // if (el.childNodes.length > 0) {
+                                //     elements.push(...el.childNodes);
+                                // }
                             } else {
-                                console.log('identifier ', identifier)
-                                console.log('el ', el)
-                                debugger
-
                                 return {
                                     isInnerTextMatchSearchLink: false,
                                     isInnerTextMatchLinkName: false,
@@ -79,23 +92,32 @@ const VK_SELECTOR = '.wl_post_body_wrap';
         console.log('searchResult ', searchResult);
 
         if (searchResult.elId != '') {
-
-            await page.click(searchResult.elId);
-            await page.waitForNavigation();
-            await page.waitForTimeout(300);
-
-            const iFramesSRC = await page.evaluate(() => {
-                return [...document.querySelectorAll('iframe')].map(el => el.getAttribute('src'));
-            });
-            console.log('iFramesSRC ', iFramesSRC);
-            console.log(iFramesSRC.some(e => {
-                if (e) {
-                    return e.includes(SEARCHED_LINK);
-                }
-                return false;
-            }));
-
-            await browser.close();
+            if (searchResult.elId[0] !== '#') {
+                await page.click(searchResult.elId);
+                await page.waitForTimeout(100);
+                const iFramesSRC = await getIframes(page);
+                console.log('iFramesSRC ', iFramesSRC);
+                console.log(iFramesSRC.some(e => {
+                    if (e) {
+                        return e.includes(SEARCHED_LINK);
+                    }
+                    return false;
+                }));
+                await browser.close();
+            } else {
+                await page.click(searchResult.elId);
+                await page.waitForNavigation();
+                await page.waitForTimeout(300);
+                const iFramesSRC = await getIframes(page);
+                console.log('iFramesSRC ', iFramesSRC);
+                console.log(iFramesSRC.some(e => {
+                    if (e) {
+                        return e.includes(SEARCHED_LINK);
+                    }
+                    return false;
+                }));
+                await browser.close();
+            }
         }
 
         await browser.close();
@@ -104,3 +126,10 @@ const VK_SELECTOR = '.wl_post_body_wrap';
         await browser.close();
     }
 })();
+
+async function getIframes(page) {
+    const iFramesSRC = await page.evaluate(() => {
+        return [...document.querySelectorAll('iframe')].map(el => el.getAttribute('src'));
+    });
+    return iFramesSRC;
+}
