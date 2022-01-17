@@ -2,9 +2,7 @@ const puppeteer = require('puppeteer');
 
 const SEARCHED_LINK = '--M1x9s9NYs';
 const LINK_NAME = 'Вайтишный Новогодний стрим - призы, планы на 2022 год'.toLowerCase();
-
 const VK_URL = 'https://vk.com/id4255985?w=wall4255985_144';
-
 const VK_SELECTOR = '.wl_post_body_wrap';
 
 (async () => {
