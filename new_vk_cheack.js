@@ -14,8 +14,21 @@ const VK_SELECTOR = '.wl_post_body_wrap';
         const page = await browser.newPage();
         // Добавляем логику подсчета трафика
         page.setRequestInterception(true);
+        // page.on('request', request => {
+        //     request.continue();
+        // });
+        // Экономим трафик не загружая картинки и css
         page.on('request', request => {
-            request.continue();
+            if (request.url().endsWith('.png') ||
+                request.url().endsWith('.jpg') ||
+                request.url().endsWith('.jpeg') ||
+                request.url().endsWith('.gif') ||
+                request.url().endsWith('.mp3') ||
+                request.url().endsWith('.css')) {
+                request.abort();
+            } else {
+                request.continue();
+            }
         });
         page.on('response', response => {
             let headers = response.headers();
@@ -99,7 +112,7 @@ const VK_SELECTOR = '.wl_post_body_wrap';
         //await page.screenshot({ path: 'example.png' });
 
         console.log(`isContainsSearchLink `, isContainsSearchLink);
-        console.log(`Total data used: ${totalBytes/1048576} MBytes`);
+        console.log(`Total data used: ${totalBytes/1048576} MB`);
 
         await browser.close();
     } catch (err) {
